@@ -1,0 +1,211 @@
+const styleTag = document.createElement('style');
+styleTag.innerHTML = `
+  @import url('https://fonts.googleapis.com/css2?family=M+PLUS+1+Code&display=swap');
+  div.context-options {
+    position: fixed;
+    top: 50px;
+    left: 50px;
+    width: 250px;
+    height: 280px; /* Altura reduzida */
+    border: 1px solid black;
+    background: #0B0E11;
+    padding: 5px;
+    display: none;
+    z-index: 9999;
+    overflow-y: auto;
+  }
+  div.context-options img {
+    border-radius: 10px;
+    width: 100%;
+    max-height: 80px; /* Altura reduzida */
+  }
+  div.context-options span.bot-title {
+    color: White;
+    text-align: center;
+    display: block;
+    font-family: 'M PLUS 1 Code', sans-serif;
+    margin-bottom: 5px;
+  }
+  div.context-options span.context-option {
+    text-align: left;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: #F20505;
+    color: #000;
+    padding: 5px;
+    border-bottom: 1px black;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    font-family: 'M PLUS 1 Code', sans-serif;
+    transition: .1s all;
+  }
+  div.context-options span.context-option:hover {
+    transform: scale(1.1);
+  }
+  div.context-options span.context-option:active {
+    transform: scale(1);
+  }
+  .closeContextOptions {
+    background: #F20505 !important;
+  }
+  span.dev-by {
+    color: White;
+    display: block;
+    text-align: center;
+    margin-top: 5px;
+    font-family: 'M PLUS 1 Code', sans-serif;
+  }
+  div.signal-section {
+    background: #ffffff; /* Fundo branco */
+    border: 1px solid #000;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    color: #000;
+    font-family: 'M PLUS 1 Code', sans-serif;
+    height: 150px; /* Altura original */
+    overflow-y: auto;
+    position: relative;
+  }
+  div.signal-section p {
+    margin: 0;
+    color: #000;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  div.signal-inner {
+    background: #F20505; /* Fundo vermelho */
+    border-radius: 5px;
+    padding: 5px;
+    color: #ffffff;
+    width: 80%; /* Ajuste conforme necessário */
+    text-align: center;
+    margin: 0 auto 10px auto; /* Centraliza e adiciona espaço inferior */
+  }
+  #success-message {
+    text-align: center;
+  }
+`;
+
+const menuDiv = document.createElement('div');
+menuDiv.classList.add('context-options');
+menuDiv.innerHTML = `
+  <img src="https://i.ibb.co/fMyLHr1/IMG-20240525-WA0072.jpg" />
+  <span class="bot-title"><i class="fas fa-robot"></i> 🤑BOT CRASH DO 0️⃣0️⃣ - (0️⃣.1️⃣.0️⃣)</span>
+  <span class="context-option closeContextOptions" onclick="closeMenu();"><i class="fas fa-times"></i> Fechar Menu 🏳️</span>
+  <span class="context-option pedir-sinal"><i class="fas fa-eye"></i> 🎯Pedir Sinal 🚀 </span>
+  <span class="dev-by"><i class="fas fa-code"></i> Padrões Encontrado 📈</span>
+  <div class="signal-section" id="signal-section">
+    <p>Aqui aparecerão os sinais.</p>
+    <div class="signal-inner">
+      <p>Sinal:</p>
+    </div>
+    <p id="success-message" style="display: none;">Entrada gerada com sucesso, execute o sinal até G2</p>
+  </div>
+`;
+
+let fafa = document.createElement('script');
+fafa.src = 'https://kit.fontawesome.com/a076d05399.js';
+fafa.setAttribute('crossorigin', 'anonymous');
+
+document.body.prepend(fafa);
+document.body.prepend(styleTag);
+document.body.appendChild(menuDiv);
+
+function showMenu(event) {
+    event.preventDefault();
+    let posX = event.clientX;
+    let posY = event.clientY;
+    let context_options = document.getElementsByClassName('context-options')[0];
+    context_options.style.top = `50px`;
+    context_options.style.left = `50px`;
+    context_options.style.display = 'unset';
+}
+
+function closeMenu() {
+    let context_options = document.getElementsByClassName('context-options')[0];
+    context_options.style.display = 'none';
+}
+
+if (window.matchMedia("(max-width: 800px)").matches) {
+    document.addEventListener('dblclick', showMenu);
+} else {
+    document.addEventListener('contextmenu', showMenu);
+}
+
+// Função para exibir sinais na seção de sinais
+function mostrarSinal(sinal) {
+    const signalInner = document.querySelector('.signal-inner p');
+    signalInner.textContent = `Sinal: ${sinal}`;
+    const successMessage = document.getElementById('success-message');
+    successMessage.style.display = 'block';
+}
+
+// Função para gerar um hash SHA-256
+function gerarHash(seed) {
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(seed)).then(hashBuffer => {
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    });
+}
+
+function calcularPonto(hash) {
+    const divisible = (hash, mod) => {
+        let val = 0;
+        let o = hash.length % 4;
+        for (let i = o > 0 ? o - 4 : 0; i < hash.length; i += 4) {
+            val = ((val << 16) + parseInt(hash.substring(i, i + 4), 16)) % mod;
+        }
+        return val === 0;
+    };
+
+    if (divisible(hash, 15)) return 0;
+
+    let h = parseInt(hash.slice(0, 52 / 4), 16);
+    let e = Math.pow(2, 52);
+
+    return Math.floor((100 * e - h) / (e - h)) / 100;
+}
+
+function determinarSinal(ponto) {
+    if (ponto < 1.6) {
+        return "Sair em 1.5x";
+    } else if (ponto >= 1.9 && ponto <= 2.1) {
+        return "Sair em 2.0x";
+    } else if (ponto > 2.1) {
+        return "Sair entre 2.0 e 3.0x";
+    }
+}
+
+function desativarBotao(tempo) {
+    const botao = document.querySelector('.pedir-sinal');
+    botao.disabled = true;
+    botao.style.background = '#808080';
+    botao.innerHTML = `<i class="fas fa-clock"></i> Aguardar ${tempo}s`;
+
+    let contador = tempo;
+    const intervalo = setInterval(() => {
+        contador--;
+        botao.innerHTML = `<i class="fas fa-clock"></i> Aguardar ${contador}s`;
+        if (contador <= 0) {
+            clearInterval(intervalo);
+            botao.disabled = false;
+            botao.style.background = '#F20505';
+            botao.innerHTML = `<i class="fas fa-eye"></i> 🎯Pedir Sinal 🚀`;
+        }
+    }, 1000);
+}
+
+async function gerarESinal() {
+    const serverSeed = Array.from(crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
+    const clientSeed = "0000000000000000000415ebb64b0d51ccee0bb55826e43846e5bea777d91966";
+    const hash = await gerarHash(serverSeed + clientSeed);
+    const ponto = calcularPonto(hash);
+    const sinal = determinarSinal(ponto);
+    mostrarSinal(sinal);
+    desativarBotao(35); 
+}
+
+document.querySelector('.pedir-sinal').addEventListener('click', gerarESinal);
